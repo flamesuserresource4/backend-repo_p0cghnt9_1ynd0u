@@ -11,16 +11,12 @@ Model name is converted to lowercase for the collection name:
 - BlogPost -> "blogs" collection
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, List
+from datetime import datetime
 
-# Example schemas (replace with your own):
-
+# Example schemas (kept for reference)
 class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
     name: str = Field(..., description="Full name")
     email: str = Field(..., description="Email address")
     address: str = Field(..., description="Address")
@@ -28,21 +24,27 @@ class User(BaseModel):
     is_active: bool = Field(True, description="Whether user is active")
 
 class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
     title: str = Field(..., description="Product title")
     description: Optional[str] = Field(None, description="Product description")
     price: float = Field(..., ge=0, description="Price in dollars")
     category: str = Field(..., description="Product category")
     in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+# Presale-specific schemas
+class Presale(BaseModel):
+    name: str = Field(..., description="Token name")
+    symbol: str = Field(..., description="Token symbol")
+    price_usd: float = Field(..., gt=0, description="Price per token in USD")
+    soft_cap_usd: float = Field(..., ge=0)
+    hard_cap_usd: float = Field(..., ge=0)
+    token_supply: int = Field(..., ge=0)
+    liquidity_percent: float = Field(..., ge=0, le=100)
+    networks: List[str] = Field(default_factory=lambda: ["ETH", "BSC"]) 
+    start_at: Optional[datetime] = None
+    end_at: Optional[datetime] = None
+    vesting: Optional[str] = Field(None, description="Vesting schedule description")
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+class WhitelistEntry(BaseModel):
+    email: EmailStr
+    wallet: Optional[str] = Field(None, description="Wallet address")
+    network: Optional[str] = Field(None, description="Preferred network")
